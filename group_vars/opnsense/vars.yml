@@ -1,0 +1,220 @@
+---
+# OPNsense-spezifische Variablen
+
+# WAN Interface
+wan_interface: "igc1"
+
+# LAN/Trunk Interface (zum Managed Switch)
+lan_interface: "igc0"
+
+# VLANs
+vlans:
+  - id: 10
+    name: "management"
+    description: "Management – Proxmox, TrueNAS, OPNsense"
+    interface: "igc0"
+    subnet: "192.168.10.0/24"
+    gateway: "192.168.10.1"
+    internet_access: false
+    dhcp_enabled: false  # Statische IPs im Management-Netz
+
+  - id: 20
+    name: "servers"
+    description: "Server – Talos VMs, OpenBao, Salt"
+    interface: "igc0"
+    subnet: "192.168.20.0/24"
+    gateway: "192.168.20.1"
+    internet_access: true
+    dhcp_enabled: true
+    dhcp_range_start: "192.168.20.100"
+    dhcp_range_end: "192.168.20.200"
+
+  - id: 30
+    name: "storage"
+    description: "Storage – NFS/iSCSI TrueNAS zu Proxmox"
+    interface: "igc0"
+    subnet: "192.168.30.0/24"
+    gateway: "192.168.30.1"
+    internet_access: false
+    dhcp_enabled: false  # Statische IPs für Storage
+    mtu: 9000  # Jumbo Frames
+
+  - id: 40
+    name: "monitoring"
+    description: "Monitoring – Wazuh, Graylog, Grafana"
+    interface: "igc0"
+    subnet: "192.168.40.0/24"
+    gateway: "192.168.40.1"
+    internet_access: false
+    dhcp_enabled: true
+    dhcp_range_start: "192.168.40.100"
+    dhcp_range_end: "192.168.40.150"
+
+  - id: 50
+    name: "clients"
+    description: "Clients – Laptop, Desktop, Endgeräte"
+    interface: "igc0"
+    subnet: "192.168.50.0/24"
+    gateway: "192.168.50.1"
+    internet_access: true
+    dhcp_enabled: true
+    dhcp_range_start: "192.168.50.100"
+    dhcp_range_end: "192.168.50.250"
+
+# Statische DHCP-Leases (Beispiele)
+static_leases:
+  - mac: "aa:bb:cc:dd:ee:01"
+    ip: "192.168.10.10"
+    hostname: "proxmox-node1"
+    vlan: 10
+  - mac: "aa:bb:cc:dd:ee:02"
+    ip: "192.168.10.11"
+    hostname: "proxmox-node2"
+    vlan: 10
+  - mac: "aa:bb:cc:dd:ee:03"
+    ip: "192.168.10.12"
+    hostname: "proxmox-node3"
+    vlan: 10
+  - mac: "aa:bb:cc:dd:ee:04"
+    ip: "192.168.10.20"
+    hostname: "truenas"
+    vlan: 10
+  - mac: "aa:bb:cc:dd:ee:05"
+    ip: "192.168.30.10"
+    hostname: "truenas-storage"
+    vlan: 30
+
+# Firewall-Regeln Inter-VLAN
+# Grundregel: Default Deny – nur explizit Erlaubtes wird durchgelassen
+firewall_rules:
+
+  # Management darf alles erreichen
+  - description: "MGMT -> Servers erlaubt"
+    source_net: "192.168.10.0/24"
+    dest_net: "192.168.20.0/24"
+    action: "pass"
+    protocol: "any"
+
+  - description: "MGMT -> Storage erlaubt"
+    source_net: "192.168.10.0/24"
+    dest_net: "192.168.30.0/24"
+    action: "pass"
+    protocol: "any"
+
+  - description: "MGMT -> Monitoring erlaubt"
+    source_net: "192.168.10.0/24"
+    dest_net: "192.168.40.0/24"
+    action: "pass"
+    protocol: "any"
+
+  # Servers -> Storage (NFS/iSCSI)
+  - description: "Servers -> Storage NFS"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.30.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "2049"  # NFS
+
+  - description: "Servers -> Storage iSCSI"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.30.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "3260"  # iSCSI
+
+  # Servers -> Monitoring (Wazuh Agent)
+  - description: "Servers -> Wazuh Manager"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.40.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "1514"  # Wazuh Agent
+
+  - description: "Servers -> Wazuh Syslog"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.40.0/24"
+    action: "pass"
+    protocol: "udp"
+    dest_port: "514"
+
+  # Monitoring -> Management (Alerts)
+  - description: "Monitoring -> MGMT Alerts"
+    source_net: "192.168.40.0/24"
+    dest_net: "192.168.10.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "443"
+
+  # Clients -> Services (Jellyfin, Nextcloud, Navidrome)
+  - description: "Clients -> Jellyfin"
+    source_net: "192.168.50.0/24"
+    dest_net: "192.168.20.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "8096"
+
+  - description: "Clients -> Nextcloud"
+    source_net: "192.168.50.0/24"
+    dest_net: "192.168.20.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "443"
+
+  - description: "Clients -> Navidrome"
+    source_net: "192.168.50.0/24"
+    dest_net: "192.168.20.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "4533"
+
+  # Admin-Client -> Management UI (explizit per Host)
+  - description: "Admin Laptop -> Proxmox UI"
+    source_net: "192.168.50.10/32"  # Dein Admin-Laptop, IP anpassen
+    dest_net: "192.168.10.0/24"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "8006"
+
+  - description: "Admin Laptop -> TrueNAS UI"
+    source_net: "192.168.50.10/32"
+    dest_net: "192.168.10.20/32"
+    action: "pass"
+    protocol: "tcp"
+    dest_port: "443"
+
+  # Default Deny – alles andere blocken (OPNsense Standard, explizit dokumentiert)
+  - description: "Default Deny inter-VLAN"
+    source_net: "any"
+    dest_net: "any"
+    action: "block"
+    protocol: "any"
+
+# WireGuard
+wireguard:
+  enabled: true
+  listen_port: 51820
+  tunnel_subnet: "10.100.0.0/24"
+  server_address: "10.100.0.1/24"
+  # Peers in host_vars oder secrets.yml definieren
+  allowed_vlans:
+    - 10  # Management
+    - 20  # Servers
+    - 50  # Clients
+
+# Suricata IDS/IPS
+suricata:
+  enabled: true
+  interface: "{{ wan_interface }}"
+  mode: "ids"  # ids = nur detektieren, ips = aktiv blocken
+  # Nach Tuning auf "ips" umstellen
+  rulesets:
+    - "emerging-threats-open"
+    - "abuse-ch-feodo"
+    - "abuse-ch-sslbl"
+
+# CrowdSec
+crowdsec:
+  enabled: true
+  log_sources:
+    - "/var/log/suricata/eve.json"
+    - "/var/log/opnsense/filter.log"

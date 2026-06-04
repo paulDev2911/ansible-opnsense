@@ -1,0 +1,62 @@
+---
+# roles/opnsense_vpn/tasks/main.yml
+
+- name: "WireGuard Plugin installieren"
+  ansibleguy.opnsense.package:
+    name: "os-wireguard"
+    state: present
+
+- name: "WireGuard Server konfigurieren"
+  ansibleguy.opnsense.wireguard_server:
+    name: "homelab-vpn"
+    listen_port: "{{ wireguard.listen_port }}"
+    tunnel_address: "{{ wireguard.server_address }}"
+    enabled: true
+    dns_servers:
+      - "{{ opnsense_api_host }}"
+
+- name: "WireGuard Peers konfigurieren"
+  ansibleguy.opnsense.wireguard_peer:
+    name: "{{ item.name }}"
+    public_key: "{{ item.public_key }}"
+    allowed_ips: "{{ item.allowed_ips }}"
+    enabled: true
+  loop: "{{ wireguard_peers }}"
+
+- name: "WireGuard Firewall – WAN eingehend erlauben"
+  ansibleguy.opnsense.rule:
+    description: "WireGuard VPN eingehend WAN"
+    interface: "{{ wan_interface }}"
+    source_net: "any"
+    destination_net: "any"
+    destination_port: "{{ wireguard.listen_port }}"
+    action: "pass"
+    protocol: "udp"
+    direction: "in"
+    enabled: true
+  notify: reload_firewall
+
+- name: "WireGuard -> Management VLAN"
+  ansibleguy.opnsense.rule:
+    description: "VPN -> Management"
+    source_net: "{{ wireguard.tunnel_subnet }}"
+    destination_net: "192.168.10.0/24"
+    action: "pass"
+    protocol: "any"
+    enabled: true
+  notify: reload_firewall
+
+- name: "WireGuard -> Server VLAN"
+  ansibleguy.opnsense.rule:
+    description: "VPN -> Servers"
+    source_net: "{{ wireguard.tunnel_subnet }}"
+    destination_net: "192.168.20.0/24"
+    action: "pass"
+    protocol: "any"
+    enabled: true
+  notify: reload_firewall
+
+handlers:
+  - name: reload_firewall
+    ansibleguy.opnsense.reload:
+      target: "filter"

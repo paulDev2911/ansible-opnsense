@@ -1,0 +1,30 @@
+---
+# playbooks/site.yml – Master Playbook
+# Rollt die komplette OPNsense Konfiguration aus
+
+- name: "OPNsense – Komplettes Setup"
+  hosts: opnsense
+  gather_facts: false
+
+  vars_files:
+    - "../group_vars/opnsense/secrets.yml"
+
+  vars:
+    opnsense_api_key: "{{ vault_opnsense_api_key }}"
+    opnsense_api_secret: "{{ vault_opnsense_api_secret }}"
+
+  roles:
+    - role: opnsense_vlans
+      tags: [vlans, network]
+
+    - role: opnsense_firewall
+      tags: [firewall, security]
+
+    - role: opnsense_dns
+      tags: [dns, network]
+
+    - role: opnsense_vpn
+      tags: [vpn, wireguard]
+
+    - role: opnsense_ids
+      tags: [ids, ips, security, suricata]

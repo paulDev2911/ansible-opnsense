@@ -1,0 +1,46 @@
+---
+# roles/opnsense_firewall/tasks/main.yml
+
+- name: "Firewall Plugin prüfen (os-firewall)"
+  ansibleguy.opnsense.package:
+    name: "os-firewall"
+    state: present
+
+- name: "Inter-VLAN Firewall-Regeln setzen"
+  ansibleguy.opnsense.rule:
+    description: "{{ item.description }}"
+    source_net: "{{ item.source_net }}"
+    destination_net: "{{ item.dest_net }}"
+    action: "{{ item.action }}"
+    protocol: "{{ item.protocol }}"
+    destination_port: "{{ item.dest_port | default(omit) }}"
+    enabled: true
+    sequence: "{{ ansible_loop.index * 10 }}"
+  loop: "{{ firewall_rules }}"
+  loop_control:
+    extended: true
+  notify: reload_firewall
+
+- name: "Firewall Anti-Lockout Regel (Management SSH/HTTPS)"
+  ansibleguy.opnsense.rule:
+    description: "Anti-Lockout – Admin Zugriff auf OPNsense"
+    source_net: "192.168.50.10/32"
+    destination_net: "192.168.2.2/32"
+    action: "pass"
+    protocol: "tcp"
+    destination_port: "443"
+    enabled: true
+    sequence: 1
+  notify: reload_firewall
+
+- name: "Bogon Networks blocken (WAN)"
+  ansibleguy.opnsense.rule:
+    description: "Block Bogon Networks WAN"
+    interface: "{{ wan_interface }}"
+    source_net: "any"
+    destination_net: "any"
+    action: "block"
+    direction: "in"
+    protocol: "any"
+    enabled: true
+  notify: reload_firewall

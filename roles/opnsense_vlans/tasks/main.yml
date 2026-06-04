@@ -1,0 +1,43 @@
+---
+# roles/opnsense_vlans/tasks/main.yml
+
+- name: "VLANs konfigurieren"
+  ansibleguy.opnsense.vlan:
+    id: "{{ item.id }}"
+    description: "{{ item.description }}"
+    interface: "{{ item.interface }}"
+    tag: "{{ item.id }}"
+  loop: "{{ vlans }}"
+  notify: reload_interfaces
+
+- name: "VLAN Interfaces aktivieren"
+  ansibleguy.opnsense.interface:
+    name: "vlan{{ item.id }}"
+    description: "{{ item.name }}"
+    enabled: true
+    ipv4_type: "static"
+    ipv4_address: "{{ item.gateway }}"
+    ipv4_netmask: "{{ item.subnet | ansible.utils.ipaddr('prefix') }}"
+    mtu: "{{ item.mtu | default(1500) }}"
+  loop: "{{ vlans }}"
+  notify: reload_interfaces
+
+- name: "DHCP Server konfigurieren"
+  ansibleguy.opnsense.dhcp_server:
+    interface: "vlan{{ item.id }}"
+    enabled: "{{ item.dhcp_enabled }}"
+    range_start: "{{ item.dhcp_range_start | default(omit) }}"
+    range_end: "{{ item.dhcp_range_end | default(omit) }}"
+    domain: "{{ item.name }}.{{ domain_internal }}"
+    dns_servers:
+      - "{{ item.gateway }}"
+  loop: "{{ vlans }}"
+  when: item.dhcp_enabled is defined
+
+- name: "Statische DHCP Leases setzen"
+  ansibleguy.opnsense.dhcp_static:
+    mac: "{{ item.mac }}"
+    ip: "{{ item.ip }}"
+    hostname: "{{ item.hostname }}"
+    interface: "vlan{{ item.vlan }}"
+  loop: "{{ static_leases }}"

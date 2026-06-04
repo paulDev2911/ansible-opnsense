@@ -1,0 +1,6 @@
+---
+# roles/opnsense_firewall/handlers/main.yml
+
+- name: reload_firewall
+  ansibleguy.opnsense.reload:
+    target: "filter"

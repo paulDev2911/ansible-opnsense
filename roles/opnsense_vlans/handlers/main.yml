@@ -1,0 +1,6 @@
+---
+# roles/opnsense_vlans/handlers/main.yml
+
+- name: reload_interfaces
+  ansibleguy.opnsense.interface_apply:
+    reload: true
