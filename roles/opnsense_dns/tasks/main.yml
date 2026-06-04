@@ -1,63 +1,31 @@
 ---
-# roles/opnsense_dns/tasks/main.yml
 
 - name: "Unbound DNS konfigurieren"
   ansibleguy.opnsense.unbound_general:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     enabled: true
     port: 53
     dnssec: true
-    dns_rebind_check: true
-    rebind_localhost: true
-    forward_tls_upstream: true  # DNS over TLS
-    log_queries: false
 
-- name: "Unbound DNS Forwarder (DoT upstream)"
+- name: "Unbound Forwarder – Quad9 DoT"
   ansibleguy.opnsense.unbound_forward:
-    domain: "."
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+#    domain: "."
     enabled: true
-    servers: "{{ dns_upstream }}"
+    target: "9.9.9.9"
 
-- name: "Interne DNS-Einträge – Proxmox Nodes"
-  ansibleguy.opnsense.unbound_host:
-    hostname: "proxmox-node{{ item.index }}"
-    domain: "mgmt.{{ domain_internal }}"
-    ip: "192.168.10.1{{ item.index }}"
+- name: "Unbound Forwarder – Quad9 Secondary"
+  ansibleguy.opnsense.unbound_forward:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+#    domain: "."
     enabled: true
-  loop:
-    - { index: 1 }
-    - { index: 2 }
-    - { index: 3 }
-
-- name: "Interne DNS-Einträge – TrueNAS"
-  ansibleguy.opnsense.unbound_host:
-    hostname: "truenas"
-    domain: "mgmt.{{ domain_internal }}"
-    ip: "192.168.10.20"
-    enabled: true
-
-- name: "Interne DNS-Einträge – OPNsense"
-  ansibleguy.opnsense.unbound_host:
-    hostname: "opnsense"
-    domain: "mgmt.{{ domain_internal }}"
-    ip: "192.168.2.2"
-    enabled: true
-
-- name: "Interne DNS-Einträge – Services"
-  ansibleguy.opnsense.unbound_host:
-    hostname: "{{ item.hostname }}"
-    domain: "svc.{{ domain_internal }}"
-    ip: "{{ item.ip }}"
-    enabled: true
-  loop:
-    - { hostname: "jellyfin",   ip: "192.168.20.50" }
-    - { hostname: "nextcloud",  ip: "192.168.20.51" }
-    - { hostname: "navidrome",  ip: "192.168.20.52" }
-    - { hostname: "openbao",    ip: "192.168.20.60" }
-    - { hostname: "wazuh",      ip: "192.168.40.10" }
-
-- name: "DNS über VLAN Interfaces aktivieren"
-  ansibleguy.opnsense.unbound_acl:
-    network: "{{ item.subnet }}"
-    action: "allow"
-    description: "DNS für {{ item.name }}"
-  loop: "{{ vlans }}"
+    target: "149.112.112.112"

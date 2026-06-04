@@ -1,5 +1,5 @@
 ---
-- name: "OPNsense – Komplettes Setup"
+- name: "OPNsense – Nur Firewall"
   hosts: opnsense
   gather_facts: false
   vars_files:
@@ -10,8 +10,4 @@
     opnsense_api_key: "{{ vault_opnsense_api_key }}"
     opnsense_api_secret: "{{ vault_opnsense_api_secret }}"
   roles:
-    - opnsense_vlans
     - opnsense_firewall
-    - opnsense_dns
-    - opnsense_vpn
-    - opnsense_ids
