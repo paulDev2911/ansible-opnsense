@@ -8,7 +8,7 @@
     name: ["os-firewall"]
     action: install
 
-- name: "Inter-VLAN Firewall-Regeln setzen"
+- name: "Firewall-Regeln setzen"
   ansibleguy.opnsense.rule:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
@@ -18,43 +18,25 @@
     source_net: "{{ item.source_net }}"
     destination_net: "{{ item.dest_net }}"
     action: "{{ item.action }}"
-    protocol: "{{ item.protocol }}"
+    protocol: "{{ item.protocol | default(omit) }}"
     destination_port: "{{ item.dest_port | default(omit) }}"
     enabled: true
-    sequence: "{{ ansible_loop.index * 10 }}"
+    match_fields: ["description"]
   loop: "{{ firewall_rules }}"
-  loop_control:
-    extended: true
   notify: reload_firewall
 
-- name: "Firewall Anti-Lockout Regel"
+- name: "Anti-Lockout Regel"
   ansibleguy.opnsense.rule:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
     ssl_verify: false
-    description: "Anti-Lockout – Admin Zugriff auf OPNsense"
+    description: "Anti-Lockout OPNsense"
     source_net: "192.168.50.10/32"
     destination_net: "192.168.2.2/32"
     action: "pass"
-    protocol: "tcp"
-    destination_port: "443"
-    enabled: true
-    sequence: 1
-  notify: reload_firewall
-
-- name: "Bogon Networks blocken (WAN)"
-  ansibleguy.opnsense.rule:
-    firewall: "{{ firewall }}"
-    api_key: "{{ opnsense_api_key }}"
-    api_secret: "{{ opnsense_api_secret }}"
-    ssl_verify: false
-    description: "Block Bogon Networks WAN"
-    interface: "{{ wan_interface }}"
-    source_net: "any"
-    destination_net: "any"
-    action: "block"
-    direction: "in"
-    protocol: "any"
+    protocol: "TCP"
+    destination_port: 443
+    match_fields: ["description"]
     enabled: true
   notify: reload_firewall

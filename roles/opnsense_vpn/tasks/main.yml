@@ -40,14 +40,15 @@
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
     ssl_verify: false
-    description: "WireGuard VPN eingehend WAN"
+    description: "WireGuard VPN WAN eingehend"
     source_net: "any"
     destination_net: "any"
     destination_port: "{{ wireguard.listen_port }}"
     action: "pass"
-    protocol: "udp"
+    protocol: "UDP"
     direction: "in"
-    interface: "{{ wan_interface }}"
+    interface: "wan"
+    match_fields: ["description"]
     enabled: true
 
 - name: "WireGuard -> Management VLAN"
@@ -60,7 +61,7 @@
     source_net: "{{ wireguard.tunnel_subnet }}"
     destination_net: "192.168.10.0/24"
     action: "pass"
-    protocol: "any"
+    match_fields: ["description"]
     enabled: true
 
 - name: "WireGuard -> Server VLAN"
@@ -73,5 +74,5 @@
     source_net: "{{ wireguard.tunnel_subnet }}"
     destination_net: "192.168.20.0/24"
     action: "pass"
-    protocol: "any"
+    match_fields: ["description"]
     enabled: true

@@ -24,8 +24,7 @@
     dns:
       - "{{ item.gateway }}"
     pools:
-      - start: "{{ item.dhcp_range_start }}"
-        end: "{{ item.dhcp_range_end }}"
+      - "{{ item.dhcp_range_start }}-{{ item.dhcp_range_end }}"
   loop: "{{ vlans }}"
   when: item.dhcp_enabled is defined and item.dhcp_enabled
 
