@@ -1,28 +1,45 @@
 ---
-
 - name: "WireGuard Plugin installieren"
   ansibleguy.opnsense.package:
-    name: "os-wireguard"
-    state: present
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+    name: ["os-wireguard"]
+    action: install
 
 - name: "WireGuard Server konfigurieren"
   ansibleguy.opnsense.wireguard_server:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     name: "homelab-vpn"
     port: "{{ wireguard.listen_port }}"
     address: "{{ wireguard.server_address }}"
+    private_key: "{{ wireguard.private_key }}"
+    public_key: "{{ wireguard.public_key }}"
     enabled: true
     dns_servers: "{{ opnsense_api_host }}"
 
 - name: "WireGuard Peers konfigurieren"
   ansibleguy.opnsense.wireguard_peer:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     name: "{{ item.name }}"
     public_key: "{{ item.public_key }}"
     allowed_ips: "{{ item.allowed_ips }}"
     enabled: true
   loop: "{{ wireguard_peers }}"
 
-- name: "WireGuard Firewall – WAN eingehend erlauben"
+- name: "WireGuard Firewall – WAN eingehend"
   ansibleguy.opnsense.rule:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     description: "WireGuard VPN eingehend WAN"
     source_net: "any"
     destination_net: "any"
@@ -35,6 +52,10 @@
 
 - name: "WireGuard -> Management VLAN"
   ansibleguy.opnsense.rule:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     description: "VPN -> Management"
     source_net: "{{ wireguard.tunnel_subnet }}"
     destination_net: "192.168.10.0/24"
@@ -44,6 +65,10 @@
 
 - name: "WireGuard -> Server VLAN"
   ansibleguy.opnsense.rule:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     description: "VPN -> Servers"
     source_net: "{{ wireguard.tunnel_subnet }}"
     destination_net: "192.168.20.0/24"

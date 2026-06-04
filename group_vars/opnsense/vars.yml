@@ -170,15 +170,15 @@ firewall_rules:
 
 # WireGuard
 wireguard:
-  enabled: true
   listen_port: 51820
   tunnel_subnet: "10.100.0.0/24"
   server_address: "10.100.0.1/24"
-  # Peers in host_vars oder secrets.yml definieren
+  private_key: "{{ vault_wireguard_private_key }}"
+  public_key: "{{ vault_wireguard_public_key }}"
   allowed_vlans:
-    - 10  # Management
-    - 20  # Servers
-    - 50  # Clients
+    - 10
+    - 20
+    - 50
 
 # Suricata IDS/IPS
 suricata:
