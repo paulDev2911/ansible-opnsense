@@ -62,30 +62,9 @@ vlans:
     dhcp_range_end: "192.168.50.250"
 
 # Statische DHCP-Leases (Beispiele)
-static_leases:
-  - mac: "aa:bb:cc:dd:ee:01"
-    ip: "192.168.10.10"
-    hostname: "proxmox-node1"
-    vlan: 10
-  - mac: "aa:bb:cc:dd:ee:02"
-    ip: "192.168.10.11"
-    hostname: "proxmox-node2"
-    vlan: 10
-  - mac: "aa:bb:cc:dd:ee:03"
-    ip: "192.168.10.12"
-    hostname: "proxmox-node3"
-    vlan: 10
-  - mac: "aa:bb:cc:dd:ee:04"
-    ip: "192.168.10.20"
-    hostname: "truenas"
-    vlan: 10
-  - mac: "aa:bb:cc:dd:ee:05"
-    ip: "192.168.30.10"
-    hostname: "truenas-storage"
-    vlan: 30
+static_leases: []
 
 # Firewall-Regeln Inter-VLAN
-# Grundregel: Default Deny – nur explizit Erlaubtes wird durchgelassen
 firewall_rules:
 
   # Management darf alles erreichen

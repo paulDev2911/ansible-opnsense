@@ -1,6 +1,8 @@
 ---
-# roles/opnsense_vlans/handlers/main.yml
-
 - name: reload_interfaces
   ansibleguy.opnsense.reload:
-    reload: true
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+    target: "interface_vlan"

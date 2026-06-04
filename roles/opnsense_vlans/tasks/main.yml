@@ -17,24 +17,26 @@
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
     ssl_verify: false
-    interface: "vlan{{ item.id }}"
+    subnet: "{{ item.subnet }}"
+    gateway: "{{ item.gateway }}"
     enabled: "{{ item.dhcp_enabled }}"
-    range_from: "{{ item.dhcp_range_start | default(omit) }}"
-    range_to: "{{ item.dhcp_range_end | default(omit) }}"
     domain: "{{ item.name }}.{{ domain_internal }}"
-    dns_servers:
+    dns:
       - "{{ item.gateway }}"
+    pools:
+      - start: "{{ item.dhcp_range_start }}"
+        end: "{{ item.dhcp_range_end }}"
   loop: "{{ vlans }}"
   when: item.dhcp_enabled is defined and item.dhcp_enabled
 
-- name: "Statische DHCP Reservierungen setzen"
-  ansibleguy.opnsense.dhcp_reservation:
-    firewall: "{{ firewall }}"
-    api_key: "{{ opnsense_api_key }}"
-    api_secret: "{{ opnsense_api_secret }}"
-    ssl_verify: false
-    mac: "{{ item.mac }}"
-    ip: "{{ item.ip }}"
-    hostname: "{{ item.hostname }}"
-    description: "{{ item.hostname }}"
-  loop: "{{ static_leases }}"
+#- name: "Statische DHCP Reservierungen setzen"
+#  ansibleguy.opnsense.dhcp_reservation:
+#    firewall: "{{ firewall }}"
+#    api_key: "{{ opnsense_api_key }}"
+#    api_secret: "{{ opnsense_api_secret }}"
+#    ssl_verify: false
+#    mac: "{{ item.mac }}"
+#    ip: "{{ item.ip }}"
+#    hostname: "{{ item.hostname }}"
+#    description: "{{ item.hostname }}"
+#  loop: "{{ static_leases }}"
