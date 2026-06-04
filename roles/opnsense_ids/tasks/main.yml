@@ -1,47 +1,9 @@
 ---
-# roles/opnsense_ids/tasks/main.yml
+# Manuell in OPNsense UI konfigurieren:
+# 1. Services -> Intrusion Detection -> Enabled, Interface: igc1, IDS Mode
+#    Ruleset: Emerging Threats Open aktivieren
+# 2. System -> Firmware -> Plugins -> os-crowdsec installieren
 
-- name: "Suricata IDS/IPS konfigurieren"
-  ansibleguy.opnsense.ids_general:
-    enabled: "{{ suricata.enabled }}"
-    interfaces:
-      - "{{ suricata.interface }}"
-    ips_mode: "{{ suricata.mode == 'ips' }}"
-    log_level: "info"
-    log_rotate: "weekly"
-    log_retention: 4
-
-- name: "Suricata Rulesets aktivieren"
-  ansibleguy.opnsense.ids_ruleset:
-    name: "{{ item }}"
-    enabled: true
-  loop: "{{ suricata.rulesets }}"
-
-- name: "Suricata Regeln updaten"
-  ansibleguy.opnsense.ids_update_rules:
-  notify: restart_suricata
-
-- name: "Suricata User-Defined Rules – interne Netze ausschließen"
-  ansibleguy.opnsense.ids_user_rule:
-    name: "suppress-internal-mgmt"
-    content: |
-      suppress gen_id 1, sig_id 2100498, track by_src, ip 192.168.10.0/24
-      suppress gen_id 1, sig_id 2100498, track by_src, ip 192.168.20.0/24
-    enabled: true
-
-# CrowdSec wird direkt auf OPNsense als Plugin installiert
-- name: "CrowdSec Plugin installieren"
-  ansibleguy.opnsense.package:
-    name: "os-crowdsec"
-    state: present
-
-- name: "CrowdSec konfigurieren"
-  ansibleguy.opnsense.crowdsec:
-    enabled: "{{ crowdsec.enabled }}"
-  when: crowdsec.enabled
-
-handlers:
-  - name: restart_suricata
-    ansibleguy.opnsense.service:
-      name: "ids"
-      action: "restart"
+- name: "Hinweis – Suricata manuell konfigurieren"
+  ansible.builtin.debug:
+    msg: "Suricata und CrowdSec manuell in OPNsense UI konfigurieren."

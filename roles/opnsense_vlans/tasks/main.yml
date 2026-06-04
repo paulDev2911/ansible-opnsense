@@ -1,43 +1,40 @@
 ---
-# roles/opnsense_vlans/tasks/main.yml
-
 - name: "VLANs konfigurieren"
-  ansibleguy.opnsense.vlan:
-    id: "{{ item.id }}"
+  ansibleguy.opnsense.interface_vlan:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     description: "{{ item.description }}"
     interface: "{{ item.interface }}"
-    tag: "{{ item.id }}"
+    vlan: "{{ item.id }}"
   loop: "{{ vlans }}"
   notify: reload_interfaces
 
-- name: "VLAN Interfaces aktivieren"
-  ansibleguy.opnsense.interface:
-    name: "vlan{{ item.id }}"
-    description: "{{ item.name }}"
-    enabled: true
-    ipv4_type: "static"
-    ipv4_address: "{{ item.gateway }}"
-    ipv4_netmask: "{{ item.subnet | ansible.utils.ipaddr('prefix') }}"
-    mtu: "{{ item.mtu | default(1500) }}"
-  loop: "{{ vlans }}"
-  notify: reload_interfaces
-
-- name: "DHCP Server konfigurieren"
-  ansibleguy.opnsense.dhcp_server:
+- name: "DHCP Subnets konfigurieren"
+  ansibleguy.opnsense.dhcp_subnet:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     interface: "vlan{{ item.id }}"
     enabled: "{{ item.dhcp_enabled }}"
-    range_start: "{{ item.dhcp_range_start | default(omit) }}"
-    range_end: "{{ item.dhcp_range_end | default(omit) }}"
+    range_from: "{{ item.dhcp_range_start | default(omit) }}"
+    range_to: "{{ item.dhcp_range_end | default(omit) }}"
     domain: "{{ item.name }}.{{ domain_internal }}"
     dns_servers:
       - "{{ item.gateway }}"
   loop: "{{ vlans }}"
-  when: item.dhcp_enabled is defined
+  when: item.dhcp_enabled is defined and item.dhcp_enabled
 
-- name: "Statische DHCP Leases setzen"
-  ansibleguy.opnsense.dhcp_static:
+- name: "Statische DHCP Reservierungen setzen"
+  ansibleguy.opnsense.dhcp_reservation:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
     mac: "{{ item.mac }}"
     ip: "{{ item.ip }}"
     hostname: "{{ item.hostname }}"
-    interface: "vlan{{ item.vlan }}"
+    description: "{{ item.hostname }}"
   loop: "{{ static_leases }}"

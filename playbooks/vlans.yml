@@ -1,10 +1,11 @@
 ---
-# playbooks/vlans.yml
 - name: "OPNsense – Nur VLANs"
   hosts: opnsense
   gather_facts: false
   vars_files:
-    - "../group_vars/opnsense/secrets.yml"
+    - "{{ playbook_dir }}/../group_vars/opnsense/secrets.yml"
+    - "{{ playbook_dir }}/../group_vars/opnsense/vars.yml"
+    - "{{ playbook_dir }}/../group_vars/all/vars.yml"
   vars:
     opnsense_api_key: "{{ vault_opnsense_api_key }}"
     opnsense_api_secret: "{{ vault_opnsense_api_secret }}"
