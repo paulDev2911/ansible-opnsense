@@ -1,0 +1,8 @@
+---
+- name: reload_nat
+  ansibleguy.opnsense.reload:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+    target: "nat"

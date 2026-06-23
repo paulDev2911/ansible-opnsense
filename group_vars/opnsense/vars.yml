@@ -135,6 +135,44 @@ firewall_rules:
     dest_net: "192.168.30.0/24"
     action: "block"
 
+  # --- DNS-Pinning: alle VLANs müssen OPNsense-DNS nutzen ---
+  # Erlaubt DNS-Anfragen an die jeweilige VLAN-Gateway-IP
+  - description: "DNS allow -> MGMT Gateway"
+    source_net: "192.168.10.0/24"
+    dest_net: "192.168.10.1/32"
+    action: "pass"
+    protocol: "UDP"
+    dest_port: "53"
+
+  - description: "DNS allow -> Cluster Gateway"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.20.1/32"
+    action: "pass"
+    protocol: "UDP"
+    dest_port: "53"
+
+  - description: "DNS allow -> Storage Gateway"
+    source_net: "192.168.30.0/24"
+    dest_net: "192.168.30.1/32"
+    action: "pass"
+    protocol: "UDP"
+    dest_port: "53"
+
+  - description: "DNS allow -> Client Gateway"
+    source_net: "192.168.40.0/24"
+    dest_net: "192.168.40.1/32"
+    action: "pass"
+    protocol: "UDP"
+    dest_port: "53"
+
+  # Externe DNS-Anfragen (Port 53 an fremde IPs) sperren
+  - description: "DNS block external"
+    source_net: "any"
+    dest_net: "any"
+    action: "block"
+    protocol: "UDP"
+    dest_port: "53"
+
   # --- Default Deny (Catch-All) ---
   - description: "Default Deny inter-VLAN"
     source_net: "any"
