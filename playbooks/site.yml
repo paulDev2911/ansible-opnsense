@@ -10,7 +10,9 @@
     opnsense_api_key: "{{ vault_opnsense_api_key }}"
     opnsense_api_secret: "{{ vault_opnsense_api_secret }}"
   roles:
-    - opnsense_vlans
-    - opnsense_firewall
-    - opnsense_dns
-    - opnsense_ids
+    - opnsense_interfaces   # Interface-Assignments + IP-Konfiguration
+    - opnsense_vlans        # VLAN-Definitionen + DHCP
+    - opnsense_nat          # Outbound-NAT (Masquerading) für Internet-VLANs
+    - opnsense_firewall     # Firewall-Regeln + DNS-Pinning
+    - opnsense_dns          # Unbound DNS + DoT-Forwarder
+    - opnsense_ids          # IDS-Hinweis (manuell)

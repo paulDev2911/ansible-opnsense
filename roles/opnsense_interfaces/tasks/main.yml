@@ -1,0 +1,33 @@
+---
+- name: "VLAN-Interface zuweisen und konfigurieren"
+  ansibleguy.opnsense.interface:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+    name: "{{ item.name | upper }}"
+    description: "{{ item.description }}"
+    match_fields: ["name"]
+    # igc0.10 / igc0.20 / igc0.30 / igc0.40
+    device: "{{ item.interface }}.{{ item.id }}"
+    ipv4_type: "static"
+    ipv4_address: "{{ item.gateway }}"
+    # /24 aus dem subnet ableiten
+    ipv4_subnet: "{{ item.subnet | ansible.utils.ipaddr('prefix') }}"
+    mtu: "{{ item.mtu | default(omit) }}"
+    enabled: true
+  loop: "{{ vlans }}"
+  notify: reload_interfaces
+
+- name: "WAN-Interface sicherstellen"
+  ansibleguy.opnsense.interface:
+    firewall: "{{ firewall }}"
+    api_key: "{{ opnsense_api_key }}"
+    api_secret: "{{ opnsense_api_secret }}"
+    ssl_verify: false
+    name: "WAN"
+    description: "WAN – Uplink"
+    match_fields: ["name"]
+    device: "{{ wan_interface }}"
+    ipv4_type: "dhcp"
+    enabled: true
