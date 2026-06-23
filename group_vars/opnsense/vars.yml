@@ -37,12 +37,41 @@ vlans:
     gateway: "192.168.30.1"
     internet_access: false
     dhcp_enabled: false  # Statische IPs für Storage
-    mtu: 9000  # Jumbo Frames
+    mtu: 9000            # Jumbo Frames
 
-# Statische DHCP-Leases (Beispiele)
+  - id: 40
+    name: "client"
+    description: "Client – Endgeräte, Workstations"
+    interface: "igc0"
+    subnet: "192.168.40.0/24"
+    gateway: "192.168.40.1"
+    internet_access: true
+    dhcp_enabled: true
+    dhcp_range_start: "192.168.40.100"
+    dhcp_range_end: "192.168.40.200"
+
+# Statische IP im Client-VLAN mit Zugriff auf Management
+client_mgmt_access_ip: "192.168.40.10"
+
+# Statische DHCP-Leases
 static_leases: []
 
+# ---------------------------------------------------------------------------
+# Firewall-Regeln
+#
+# Policy-Übersicht:
+#   Management  → alle Netze     (MGMT darf überall hin)
+#   Cluster     → Cluster intern (implizit, same-subnet)
+#   Cluster     → Internet       (Updates, Images)
+#   Cluster     → Storage NFS    (TCP 2049)
+#   Cluster     → Storage iSCSI  (TCP 3260)
+#   Client      → geblockt       (isoliert, kein inter-VLAN)
+#   client_mgmt_access_ip → Management (Ausnahme-Regel)
+#   Default     → block all
+# ---------------------------------------------------------------------------
 firewall_rules:
+
+  # --- Management darf überall hin ---
   - description: "MGMT -> Cluster"
     source_net: "192.168.10.0/24"
     dest_net: "192.168.20.0/24"
@@ -53,6 +82,12 @@ firewall_rules:
     dest_net: "192.168.30.0/24"
     action: "pass"
 
+  - description: "MGMT -> Client"
+    source_net: "192.168.10.0/24"
+    dest_net: "192.168.40.0/24"
+    action: "pass"
+
+  # --- Cluster: nur Storage-Protokolle ---
   - description: "Cluster -> Storage NFS"
     source_net: "192.168.20.0/24"
     dest_net: "192.168.30.0/24"
@@ -67,6 +102,40 @@ firewall_rules:
     protocol: "TCP"
     dest_port: "3260"
 
+  # Cluster -> andere VLANs explizit sperren (vor Internet-Erlaubnis)
+  - description: "Cluster -> Management BLOCK"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.10.0/24"
+    action: "block"
+
+  - description: "Cluster -> Client BLOCK"
+    source_net: "192.168.20.0/24"
+    dest_net: "192.168.40.0/24"
+    action: "block"
+
+  # --- Client: statische Ausnahme-IP darf Management erreichen ---
+  - description: "Client Admin-IP -> MGMT"
+    source_net: "{{ client_mgmt_access_ip }}/32"
+    dest_net: "192.168.10.0/24"
+    action: "pass"
+
+  # Restlicher Client-Traffic zu anderen VLANs geblockt
+  - description: "Client -> Management BLOCK"
+    source_net: "192.168.40.0/24"
+    dest_net: "192.168.10.0/24"
+    action: "block"
+
+  - description: "Client -> Cluster BLOCK"
+    source_net: "192.168.40.0/24"
+    dest_net: "192.168.20.0/24"
+    action: "block"
+
+  - description: "Client -> Storage BLOCK"
+    source_net: "192.168.40.0/24"
+    dest_net: "192.168.30.0/24"
+    action: "block"
+
+  # --- Default Deny (Catch-All) ---
   - description: "Default Deny inter-VLAN"
     source_net: "any"
     dest_net: "any"
