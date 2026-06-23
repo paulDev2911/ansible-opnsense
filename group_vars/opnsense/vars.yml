@@ -19,8 +19,8 @@ vlans:
     dhcp_enabled: false  # Statische IPs im Management-Netz
 
   - id: 20
-    name: "servers"
-    description: "Server – Talos VMs, OpenBao, Salt"
+    name: "cluster"
+    description: "Cluster – Talos K8s VMs (Controlplane + Worker)"
     interface: "igc0"
     subnet: "192.168.20.0/24"
     gateway: "192.168.20.1"
@@ -39,33 +39,11 @@ vlans:
     dhcp_enabled: false  # Statische IPs für Storage
     mtu: 9000  # Jumbo Frames
 
-  - id: 40
-    name: "monitoring"
-    description: "Monitoring – Wazuh, Graylog, Grafana"
-    interface: "igc0"
-    subnet: "192.168.40.0/24"
-    gateway: "192.168.40.1"
-    internet_access: false
-    dhcp_enabled: true
-    dhcp_range_start: "192.168.40.100"
-    dhcp_range_end: "192.168.40.150"
-
-  - id: 50
-    name: "clients"
-    description: "Clients – Laptop, Desktop, Endgeräte"
-    interface: "igc0"
-    subnet: "192.168.50.0/24"
-    gateway: "192.168.50.1"
-    internet_access: true
-    dhcp_enabled: true
-    dhcp_range_start: "192.168.50.100"
-    dhcp_range_end: "192.168.50.250"
-
 # Statische DHCP-Leases (Beispiele)
 static_leases: []
 
 firewall_rules:
-  - description: "MGMT -> Servers"
+  - description: "MGMT -> Cluster"
     source_net: "192.168.10.0/24"
     dest_net: "192.168.20.0/24"
     action: "pass"
@@ -75,112 +53,21 @@ firewall_rules:
     dest_net: "192.168.30.0/24"
     action: "pass"
 
-  - description: "MGMT -> Monitoring"
-    source_net: "192.168.10.0/24"
-    dest_net: "192.168.40.0/24"
-    action: "pass"
-
-  - description: "Servers -> Storage NFS"
+  - description: "Cluster -> Storage NFS"
     source_net: "192.168.20.0/24"
     dest_net: "192.168.30.0/24"
     action: "pass"
     protocol: "TCP"
     dest_port: "2049"
 
-  - description: "Servers -> Storage iSCSI"
+  - description: "Cluster -> Storage iSCSI"
     source_net: "192.168.20.0/24"
     dest_net: "192.168.30.0/24"
     action: "pass"
     protocol: "TCP"
     dest_port: "3260"
 
-  - description: "Servers -> Wazuh Manager"
-    source_net: "192.168.20.0/24"
-    dest_net: "192.168.40.0/24"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "1514"
-
-  - description: "Servers -> Wazuh Syslog"
-    source_net: "192.168.20.0/24"
-    dest_net: "192.168.40.0/24"
-    action: "pass"
-    protocol: "UDP"
-    dest_port: "514"
-
-  - description: "Monitoring -> MGMT Alerts"
-    source_net: "192.168.40.0/24"
-    dest_net: "192.168.10.0/24"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "443"
-
-  - description: "Clients -> Jellyfin"
-    source_net: "192.168.50.0/24"
-    dest_net: "192.168.20.0/24"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "8096"
-
-  - description: "Clients -> Nextcloud"
-    source_net: "192.168.50.0/24"
-    dest_net: "192.168.20.0/24"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "443"
-
-  - description: "Clients -> Navidrome"
-    source_net: "192.168.50.0/24"
-    dest_net: "192.168.20.0/24"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "4533"
-
-  - description: "Admin -> Proxmox UI"
-    source_net: "192.168.50.10/32"
-    dest_net: "192.168.10.0/24"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "8006"
-
-  - description: "Admin -> TrueNAS UI"
-    source_net: "192.168.50.10/32"
-    dest_net: "192.168.10.20/32"
-    action: "pass"
-    protocol: "TCP"
-    dest_port: "443"
-
   - description: "Default Deny inter-VLAN"
     source_net: "any"
     dest_net: "any"
     action: "block"
-
-# WireGuard
-wireguard:
-  listen_port: 51820
-  tunnel_subnet: "10.100.0.0/24"
-  server_address: "10.100.0.1/24"
-  private_key: "{{ vault_wireguard_private_key }}"
-  public_key: "{{ vault_wireguard_public_key }}"
-  allowed_vlans:
-    - 10
-    - 20
-    - 50
-
-# Suricata IDS/IPS
-suricata:
-  enabled: true
-  interface: "{{ wan_interface }}"
-  mode: "ids"  # ids = nur detektieren, ips = aktiv blocken
-  # Nach Tuning auf "ips" umstellen
-  rulesets:
-    - "emerging-threats-open"
-    - "abuse-ch-feodo"
-    - "abuse-ch-sslbl"
-
-# CrowdSec
-crowdsec:
-  enabled: true
-  log_sources:
-    - "/var/log/suricata/eve.json"
-    - "/var/log/opnsense/filter.log"

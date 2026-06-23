@@ -32,8 +32,8 @@
     api_secret: "{{ opnsense_api_secret }}"
     ssl_verify: false
     description: "Anti-Lockout OPNsense"
-    source_net: "192.168.50.10/32"
-    destination_net: "192.168.2.2/32"
+    source_net: "192.168.10.0/24"
+    destination_net: "192.168.10.1/32"
     action: "pass"
     protocol: "TCP"
     destination_port: 443

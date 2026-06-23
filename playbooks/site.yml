@@ -13,5 +13,4 @@
     - opnsense_vlans
     - opnsense_firewall
     - opnsense_dns
-    - opnsense_vpn
     - opnsense_ids
