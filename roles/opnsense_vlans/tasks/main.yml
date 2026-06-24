@@ -1,6 +1,6 @@
 ---
 - name: "VLANs konfigurieren"
-  ansibleguy.opnsense.interface_vlan:
+  oxlorg.opnsense.interface_vlan:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -12,7 +12,7 @@
   notify: reload_interfaces
 
 - name: "DHCP Subnets konfigurieren"
-  ansibleguy.opnsense.dhcp_subnet:
+  oxlorg.opnsense.dhcp_subnet:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -29,7 +29,7 @@
   when: item.dhcp_enabled is defined and item.dhcp_enabled
 
 #- name: "Statische DHCP Reservierungen setzen"
-#  ansibleguy.opnsense.dhcp_reservation:
+#  oxlorg.opnsense.dhcp_reservation:
 #    firewall: "{{ firewall }}"
 #    api_key: "{{ opnsense_api_key }}"
 #    api_secret: "{{ opnsense_api_secret }}"

@@ -1,0 +1,15 @@
+# Ansible Vault Password
+.vault_password
+*.vault_password
+
+# Secrets (nur committen wenn vault-verschlüsselt!)
+# group_vars/opnsense/secrets.yml
+
+# Ansible
+*.retry
+collections/
+
+# OS
+.DS_Store
+*.swp
+__pycache__/

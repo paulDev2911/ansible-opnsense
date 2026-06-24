@@ -1,6 +1,6 @@
 ---
 - name: "WireGuard Plugin installieren"
-  ansibleguy.opnsense.package:
+  oxlorg.opnsense.package:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -9,7 +9,7 @@
     action: install
 
 - name: "WireGuard Server konfigurieren"
-  ansibleguy.opnsense.wireguard_server:
+  oxlorg.opnsense.wireguard_server:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -23,7 +23,7 @@
     dns_servers: "{{ opnsense_api_host }}"
 
 - name: "WireGuard Peers konfigurieren"
-  ansibleguy.opnsense.wireguard_peer:
+  oxlorg.opnsense.wireguard_peer:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -35,7 +35,7 @@
   loop: "{{ wireguard_peers }}"
 
 - name: "WireGuard Firewall – WAN eingehend"
-  ansibleguy.opnsense.rule:
+  oxlorg.opnsense.rule:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -52,7 +52,7 @@
     enabled: true
 
 - name: "WireGuard -> Management VLAN"
-  ansibleguy.opnsense.rule:
+  oxlorg.opnsense.rule:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -65,7 +65,7 @@
     enabled: true
 
 - name: "WireGuard -> Server VLAN"
-  ansibleguy.opnsense.rule:
+  oxlorg.opnsense.rule:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"

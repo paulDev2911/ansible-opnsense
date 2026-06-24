@@ -11,7 +11,7 @@ lan_interface: "igc0"
 vlans:
   - id: 10
     name: "management"
-    description: "Management – Proxmox, TrueNAS, OPNsense"
+    description: "Management"
     interface: "igc0"
     subnet: "192.168.10.0/24"
     gateway: "192.168.10.1"
@@ -20,7 +20,7 @@ vlans:
 
   - id: 20
     name: "cluster"
-    description: "Cluster – Talos K8s VMs (Controlplane + Worker)"
+    description: "Cluster"
     interface: "igc0"
     subnet: "192.168.20.0/24"
     gateway: "192.168.20.1"
@@ -31,7 +31,7 @@ vlans:
 
   - id: 30
     name: "storage"
-    description: "Storage – NFS/iSCSI TrueNAS zu Proxmox"
+    description: "Storage"
     interface: "igc0"
     subnet: "192.168.30.0/24"
     gateway: "192.168.30.1"
@@ -41,7 +41,7 @@ vlans:
 
   - id: 40
     name: "client"
-    description: "Client – Endgeräte, Workstations"
+    description: "Client"
     interface: "igc0"
     subnet: "192.168.40.0/24"
     gateway: "192.168.40.1"

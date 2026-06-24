@@ -4,7 +4,7 @@
 # wechseln auf "Hybrid" damit eigene Regeln greifen ohne alles manuell zu
 # pflegen.
 - name: "Outbound-NAT Modus auf Hybrid setzen"
-  ansibleguy.opnsense.nat_outbound_mode:
+  oxlorg.opnsense.nat_outbound_mode:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -12,7 +12,7 @@
     mode: "hybrid"
 
 - name: "Outbound-NAT Regel pro VLAN mit Internet-Zugriff"
-  ansibleguy.opnsense.nat_outbound:
+  oxlorg.opnsense.nat_outbound:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"
@@ -27,7 +27,7 @@
   notify: reload_nat
 
 - name: "Explizit kein NAT für reine interne Netze (no-nat Marker)"
-  ansibleguy.opnsense.nat_outbound:
+  oxlorg.opnsense.nat_outbound:
     firewall: "{{ firewall }}"
     api_key: "{{ opnsense_api_key }}"
     api_secret: "{{ opnsense_api_secret }}"

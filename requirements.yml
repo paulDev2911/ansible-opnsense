@@ -2,8 +2,8 @@
 # ansible-galaxy collection install -r requirements.yml
 
 collections:
-  - name: ansibleguy.opnsense
-    version: ">=0.17.0"
+  collections:
+  - name: oxlorg.opnsense
   - name: ansible.utils
     version: ">=2.10.0"
   - name: community.hashi_vault

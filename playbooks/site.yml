@@ -10,8 +10,8 @@
     opnsense_api_key: "{{ vault_opnsense_api_key }}"
     opnsense_api_secret: "{{ vault_opnsense_api_secret }}"
   roles:
-    - opnsense_interfaces
+#    - opnsense_interfaces
     - opnsense_vlans
-    - opnsense_nat
+#    - opnsense_nat
     - opnsense_firewall
     - opnsense_dns
